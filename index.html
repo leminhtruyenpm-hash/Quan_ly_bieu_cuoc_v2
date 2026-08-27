@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ thống Quản lý Biểu cước Cảng biển Đa tầng - Saigon Port Tariff System</title>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js for Trend Analysis -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Application CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-logo">CSG</div>
+      <div class="brand-text">
+        <h1>CẢNG SÀI GÒN - SAIGON PORT TARIFF SYSTEM</h1>
+        <p>Hệ thống Quản lý Biểu cước Cảng biển Đa tầng & Dự phóng Giá</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" data-view="dashboard">
+        📊 Dashboard & Trend
+      </button>
+      <button class="nav-btn" data-view="decision-tree">
+        📜 Cây Quyết định & Smart Grid
+      </button>
+      <button class="nav-btn" data-view="simulator">
+        ⚡ Bộ máy Tính giá (Pricing Engine)
+      </button>
+      <button class="nav-btn" data-view="package-builder">
+        📦 Đóng gói Gói Dịch vụ
+      </button>
+    </nav>
+
+    <!-- Header Right Controls -->
+    <div class="header-actions">
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Tiền tệ:</span>
+        <select class="form-select" id="currencySelector" style="padding: 0.35rem 0.6rem; font-size: 0.8rem;">
+          <option value="VND">VND (đ)</option>
+          <option value="USD">USD ($)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- App Layout Container -->
+  <div class="app-container">
+    <!-- Left Sidebar: Decision Tree Navigator -->
+    <aside class="app-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">CÂY VĂN BẢN QUYẾT ĐỊNH (INHERITANCE TREE)</div>
+        <div id="decisionTreeNav" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <!-- Populated by app.js -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-content" id="mainContent">
+      <!-- Dynamic Views rendered by app.js -->
+    </main>
+  </div>
+
+  <!-- --- MODAL 1: CLONE & FORECAST WIZARD (DỰ PHÓNG 2027) --- -->
+  <div class="modal-overlay" id="modalCloneWizard">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #38bdf8;">⚡ Clone & Dự phóng Biểu cước Năm mới 2027</h3>
+        <button class="btn btn-secondary" id="btnCloseCloneWizard" style="padding: 0.2rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Chức năng <strong>"Clone & Update"</strong> cho phép sao chép toàn bộ biểu cước năm cũ (2026 QĐ 1812) sang năm mới 2027 (bản nháp), tự động áp dụng hệ số quy đổi điều chỉnh hàng loạt, sau đó mở giao diện Smart Grid cho phép người dùng chỉnh sửa trực tiếp (**Manual Override**) đơn giá từng dòng.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Chọn Quyết định gốc để Clone:</label>
+          <select class="form-select" id="cloneSourceDecision">
+            <option value="qd-1812">1812/QĐ-CSG - Biểu giá dịch vụ Cảng biển năm 2026 (Active)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số hiệu Quyết định dự phóng 2027 mới:</label>
+          <input type="text" class="form-input" id="cloneNewDecNo" value="1888/QĐ-CSG-2027">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Hệ số điều chỉnh quy đổi toàn bộ (% tăng/giảm):</label>
+          <input type="number" class="form-input" id="cloneRateFactor" value="5" step="0.5">
+          <span style="font-size: 0.75rem; color: #34d399; margin-top: 2px;">Tự động nhân đơn giá cũ x (1 + 5%) cho tất cả hạng mục.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" id="btnConfirmClone">🚀 KHỞI TẠO BẢN NHÁP 2027 & MỞ SMART GRID</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- MODAL 2: ADMINISTRATIVE PDF DOCUMENT PREVIEW --- -->
+  <div class="modal-overlay" id="modalPdfPreview">
+    <div class="modal-container" style="max-width: 900px; height: 95vh;">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #38bdf8;">🖨️ Xem trước Văn bản Hành chính Trình ký PDF (Mẫu Cảng Sài Gòn)</h3>
+        <button class="btn btn-secondary" id="btnClosePdfModal" style="padding: 0.2rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-body" style="background: #e2e8f0; padding: 1.5rem;" id="pdfDocumentContainer">
+        <!-- Rendered by app.js -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="btnPrintPdfDoc">🖨️ In / Xuất file PDF Hành chính</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- MODAL 3: SMART SEARCH 7 NHÓM HÀNG NGOÀI CONTAINER --- -->
+  <div class="modal-overlay" id="modalSmartSearch">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #38bdf8;">🔍 Smart Search & Auto-Suggestion (7 Nhóm Hàng Chuẩn)</h3>
+        <button class="btn btn-secondary" id="btnCloseSmartSearch" style="padding: 0.2rem 0.5rem;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nhập tên mặt hàng (Ví dụ: "Thép thanh", "Xi măng", "Tôn cuộn", "Gỗ cây"...):</label>
+          <input type="text" class="form-input" id="cargoSearchInput" placeholder="Gõ tên hàng hóa..." autofocus>
+        </div>
+
+        <div id="smartSearchResult" style="margin-top: 1rem;">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Gõ từ khóa ở trên để tự động nhận dạng phân loại nhóm hàng và áp đơn giá xếp dỡ chuẩn.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application JavaScript Files -->
+  <script src="js/data.js"></script>
+  <script src="js/pricingEngine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
